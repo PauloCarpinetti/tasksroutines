@@ -1,7 +1,14 @@
+import { RoutineProvider } from "@/contexts/RoutineContext";
+import { TaskProvider } from "@/contexts/TaskContext";
+
 export default function HomeLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div>{children}</div>;
+  return (
+    <RoutineProvider>
+      <TaskProvider>{children}</TaskProvider>
+    </RoutineProvider>
+  );
 }

@@ -1,3 +1,5 @@
+import CreateForm from "@/components/create/createForm";
+
 export default function CreateUser() {
-  return <h1>Create user Screen</h1>;
+  return <CreateForm />;
 }

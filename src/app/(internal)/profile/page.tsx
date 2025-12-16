@@ -1,3 +1,5 @@
+import UserProfileForm from "@/components/profile/UserProfileForm";
+
 export default function Profile() {
-  return <h1>Profile Screen</h1>;
+  return <UserProfileForm />;
 }
