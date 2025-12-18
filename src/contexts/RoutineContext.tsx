@@ -1,6 +1,6 @@
 "use client";
 
-import React, {
+import {
   createContext,
   useContext,
   useState,
@@ -15,7 +15,6 @@ import {
   updateRoutine,
   deleteRoutine,
 } from "@/lib/api/RoutineService";
-import { arrayUnion } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 
 interface RoutineContextType {
@@ -23,15 +22,12 @@ interface RoutineContextType {
   loading: boolean;
   error: string | null;
   addRoutine: (
-    routineData: Omit<Routine, "id" | "createdAt" | "updatedAt" | "taskIds"> & {
-      taskIds?: string[];
-    }
+    routineData: Omit<Routine, "id" | "createdAt" | "updatedAt" | "userId">
   ) => Promise<string | undefined>;
   editRoutine: (
     routineId: string,
     dataToUpdate: Partial<Omit<Routine, "id" | "createdAt">>
   ) => Promise<void>;
-  addTaskToRoutine: (routineId: string, taskId: string) => Promise<void>;
   removeRoutine: (routineId: string) => Promise<void>;
   refreshRoutines: () => Promise<void>;
 }
@@ -39,7 +35,7 @@ interface RoutineContextType {
 const RoutineContext = createContext<RoutineContextType | undefined>(undefined);
 
 export function RoutineProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth(); // Obter o usuário autenticado
+  const { user } = useAuth();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,22 +64,32 @@ export function RoutineProvider({ children }: { children: ReactNode }) {
   }, [fetchRoutines]);
 
   const addRoutine = async (
-    routineData: Omit<Routine, "id" | "createdAt" | "updatedAt" | "taskIds"> & {
-      taskIds?: string[];
-    }
+    routineData: Omit<Routine, "id" | "createdAt" | "updatedAt" | "userId">
   ) => {
     if (!user?.uid) return;
     try {
-      const newRoutineId = await createRoutine({
+      const dataToSend = {
         ...routineData,
         userId: user.uid,
-        taskIds: routineData.taskIds || [], // Garante que taskIds seja um array
-      });
-      await fetchRoutines(); // Recarrega as rotinas para atualizar o estado
+      };
+
+      const newRoutineId = await createRoutine(dataToSend);
+
+      const newRoutine: Routine = {
+        name: dataToSend.name,
+        description: dataToSend.description,
+        userId: dataToSend.userId,
+        id: newRoutineId,
+        createdAt: new Date().toDateString(),
+        updatedAt: new Date().toDateString(),
+      };
+      setRoutines((prev) => [...prev, newRoutine]);
       return newRoutineId;
     } catch (err) {
       console.error("Erro ao adicionar rotina:", err);
       setError("Não foi possível adicionar a rotina.");
+
+      await fetchRoutines();
     }
   };
 
@@ -92,22 +98,15 @@ export function RoutineProvider({ children }: { children: ReactNode }) {
     dataToUpdate: Partial<Omit<Routine, "id" | "createdAt">>
   ) => {
     await updateRoutine(routineId, dataToUpdate);
-    await fetchRoutines();
+    // Atualiza o estado localmente
+    setRoutines((prev) =>
+      prev.map((r) => (r.id === routineId ? { ...r, ...dataToUpdate } : r))
+    );
   };
 
-  const addTaskToRoutine = async (routineId: string, taskId: string) => {
-    try {
-      await updateRoutine(routineId, {
-        taskIds: arrayUnion(taskId) as unknown as string[],
-      });
-      await fetchRoutines(); // Atualiza o estado das rotinas
-    } catch (err) {
-      console.error("Erro ao adicionar tarefa à rotina:", err);
-    }
-  };
   const removeRoutine = async (routineId: string) => {
     await deleteRoutine(routineId);
-    await fetchRoutines();
+    setRoutines((prev) => prev.filter((r) => r.id !== routineId));
   };
 
   return (
@@ -118,7 +117,6 @@ export function RoutineProvider({ children }: { children: ReactNode }) {
         error,
         addRoutine,
         editRoutine,
-        addTaskToRoutine,
         removeRoutine,
         refreshRoutines: fetchRoutines,
       }}

@@ -6,7 +6,7 @@ export type TaskPriority = "LOW" | "MEDIUM" | "HIGH";
 export interface Task {
   id: string;
   userId: string;
-  routineId: string | null;
+  routineId?: string;
   title: string;
   description?: string;
   scheduledDateTime: Date | string;
@@ -24,7 +24,7 @@ export const exampleTask: Task = {
   status: "PENDING",
   priority: "LOW",
   userId: "",
-  routineId: null,
+
   scheduledDateTime: "",
   createdAt: "",
   updatedAt: "",
@@ -39,7 +39,7 @@ export const taskList: Task[] = [
     status: "PENDING",
     priority: "MEDIUM",
     userId: "",
-    routineId: null,
+    routineId: "1",
     scheduledDateTime: "",
     createdAt: "",
     updatedAt: "",
@@ -51,7 +51,7 @@ export const taskList: Task[] = [
     status: "PENDING",
     priority: "LOW",
     userId: "",
-    routineId: null,
+    routineId: "1",
     scheduledDateTime: "",
     createdAt: "",
     updatedAt: "",
@@ -63,7 +63,7 @@ export const taskList: Task[] = [
     status: "PENDING",
     priority: "HIGH",
     userId: "",
-    routineId: null,
+    routineId: "1",
     scheduledDateTime: "",
     createdAt: "",
     updatedAt: "",

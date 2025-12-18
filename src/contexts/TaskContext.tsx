@@ -1,6 +1,6 @@
 "use client";
 
-import React, {
+import {
   createContext,
   useContext,
   useState,
@@ -16,7 +16,6 @@ import {
   updateTask,
   deleteTask,
 } from "@/lib/api/TaskService";
-import { useRoutines } from "@/contexts/RoutineContext";
 import { useAuth } from "./AuthContext";
 
 interface TaskContextType {
@@ -25,7 +24,7 @@ interface TaskContextType {
   loading: boolean;
   error: string | null;
   addTask: (
-    taskData: Omit<Task, "id" | "createdAt" | "updatedAt" | "routineId"> & {
+    taskData: Omit<Task, "id" | "createdAt" | "updatedAt"> & {
       routineId?: string | null;
     }
   ) => Promise<string | undefined>;
@@ -34,6 +33,7 @@ interface TaskContextType {
     dataToUpdate: Partial<Omit<Task, "id" | "createdAt">>
   ) => Promise<void>;
   removeTask: (taskId: string) => Promise<void>;
+  toggleTask: (taskId: string) => Promise<void>;
   refreshTasks: () => Promise<void>;
 }
 
@@ -41,7 +41,6 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export function TaskProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const { addTaskToRoutine } = useRoutines();
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,10 +76,6 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const newTask = { ...taskData, userId: user.uid };
     const newTaskId = await createTask(newTask);
 
-    // Se a tarefa foi criada com um routineId, atualize a rotina.
-    if (newTaskId && taskData.routineId) {
-      await addTaskToRoutine(taskData.routineId, newTaskId);
-    }
     await fetchTasks();
     return newTaskId;
   };
@@ -98,6 +93,37 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     await fetchTasks();
   };
 
+  const toggleTask = async (taskId: string) => {
+    const taskToToggle = allTasks.find((t) => t.id === taskId);
+    if (!taskToToggle) {
+      console.error("Tarefa não encontrada para alternar o status.");
+      return;
+    }
+
+    setAllTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task
+      )
+    );
+
+    try {
+      await updateTask(taskId, {
+        completed: !taskToToggle.completed,
+        status: !taskToToggle.completed ? "COMPLETED" : "PENDING",
+      });
+    } catch (error) {
+      console.error("Falha ao alternar o status da tarefa:", error);
+      // Reverte a mudança na UI em caso de erro
+      setAllTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === taskId
+            ? { ...task, completed: taskToToggle.completed }
+            : task
+        )
+      );
+    }
+  };
+
   // Memoiza a lista de tarefas avulsas para evitar recálculos desnecessários
   const standaloneTasks = useMemo(
     () => allTasks.filter((task) => !task.routineId),
@@ -112,6 +138,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     addTask,
     editTask,
     removeTask,
+    toggleTask,
     refreshTasks: fetchTasks,
   };
 
