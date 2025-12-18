@@ -12,7 +12,12 @@ export default function InternalLayout({
   return (
     <html lang="pt-br" suppressHydrationWarning>
       <body>
-        <ThemeProvider attribute="class">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem={true}
+          disableTransitionOnChange
+        >
           <AuthProvider>
             <AuthGuard>
               <Header />

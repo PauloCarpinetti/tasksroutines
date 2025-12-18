@@ -36,7 +36,14 @@ export default function RootLayout({
       <body className={`${robotoFlex.variable}`}>
         <AuthProvider>
           <UserProfileProvider>
-            <ThemeProvider attribute="class">{children}</ThemeProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem={true}
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
           </UserProfileProvider>
         </AuthProvider>
       </body>
