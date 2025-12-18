@@ -4,10 +4,11 @@ import React, { useState } from "react";
 
 import {
   LogOut,
-  Home,
   User,
   Settings,
   Menu,
+  ListChecks,
+  Repeat,
   X,
   LucideIcon,
 } from "lucide-react";
@@ -59,8 +60,15 @@ export default function Header() {
   const currentPage = pathname.split("/")[1] || "home";
 
   const navItems = [
-    { name: "Início", page: "home", href: "/home", icon: Home },
+    { name: "Tarefas", page: "tasks", href: "/home/tasks", icon: ListChecks },
+    { name: "Rotinas", page: "routines", href: "/home/routines", icon: Repeat },
     { name: "Meu Perfil", page: "profile", href: "/profile", icon: User },
+    {
+      name: "Configurações",
+      page: "settings",
+      href: "/settings",
+      icon: Settings,
+    },
   ];
 
   const handleNavigate = (path: string) => {
@@ -117,10 +125,6 @@ export default function Header() {
               </>
             ) : (
               <>
-                {/* Em um layout público, você teria itens para usuários não logados */}
-                {/* Ex:
-                 <NavItem name="Sobre" page="about" href="/about" ... />
-                */}
                 <Button variant="outline" onClick={() => handleNavigate("/")}>
                   Voltar
                 </Button>
