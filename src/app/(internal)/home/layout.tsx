@@ -1,5 +1,6 @@
 import { RoutineProvider } from "@/contexts/RoutineContext";
 import { TaskProvider } from "@/contexts/TaskContext";
+import { UserProfileProvider } from "@/contexts/UserContext";
 
 export default function HomeLayout({
   children,
@@ -7,8 +8,10 @@ export default function HomeLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <RoutineProvider>
-      <TaskProvider>{children}</TaskProvider>
-    </RoutineProvider>
+    <UserProfileProvider>
+      <RoutineProvider>
+        <TaskProvider>{children}</TaskProvider>
+      </RoutineProvider>
+    </UserProfileProvider>
   );
 }

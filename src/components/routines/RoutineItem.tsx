@@ -60,13 +60,12 @@ export default function RoutineItem({ routine }: RoutineItemProps) {
             <PlusCircle size={16} />
             <span>Tarefa</span>
           </button>
-          <Button
+          <button
             onClick={handleDeleteRoutine}
-            variant="danger"
             aria-label={`Excluir rotina ${routine.name}`}
           >
             <Trash2 size={18} />
-          </Button>
+          </button>
         </div>
       </div>
 

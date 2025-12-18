@@ -37,7 +37,9 @@ interface TaskContextType {
   refreshTasks: () => Promise<void>;
 }
 
-const TaskContext = createContext<TaskContextType | undefined>(undefined);
+export const TaskContext = createContext<TaskContextType | undefined>(
+  undefined
+);
 
 export function TaskProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();

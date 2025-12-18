@@ -6,12 +6,7 @@ import TaskForm from "@/components/tasks/TaskForm";
 import Button from "@/components/ui/Button";
 import { PlusCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  createTask,
-  deleteTask,
-  getTasksForUser,
-  updateTask,
-} from "@/lib/api/TaskService";
+import { useTasks } from "@/contexts/TaskContext";
 import { Task } from "@/model/Task";
 
 // Tipos para o estado da view
@@ -22,75 +17,22 @@ type ViewState =
 
 export default function HomePage() {
   const [viewState, setViewState] = useState<ViewState>({ view: "LIST" });
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const {
+    standaloneTasks,
+    loading,
+    error,
+    removeTask,
+    toggleTask,
+    refreshTasks,
+  } = useTasks();
 
-  // Função centralizada para buscar as tarefas
-  const fetchTasks = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const userTasks = await getTasksForUser(user.uid);
-      setTasks(userTasks);
-    } catch (err) {
-      setError("Falha ao carregar as tarefas.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  // useEffect para buscar as tarefas quando o componente montar ou o usuário mudar
-  useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+  const handleTaskSaved = async () => {
+    await refreshTasks(); // Apenas recarrega a lista usando a função do contexto
+    setViewState({ view: "LIST" });
+  };
 
   // Funções handler atualizadas para usar o taskService
-  const handleAddTask = async (title: string) => {
-    if (!user) return;
-    const newTaskData = {
-      userId: user.uid,
-      title,
-      status: "PENDING" as const,
-      priority: "MEDIUM" as const,
-      scheduledDateTime: new Date().toISOString(),
-      completed: false,
-    };
-    await createTask(newTaskData);
-    await fetchTasks();
-    setViewState({ view: "LIST" });
-  };
 
-  const handleUpdateTask = async (updatedTask: Task) => {
-    await updateTask(updatedTask.id, {
-      title: updatedTask.title,
-      status: updatedTask.status,
-      priority: updatedTask.priority,
-    });
-    await fetchTasks();
-    setViewState({ view: "LIST" });
-  };
-
-  const handleDeleteTask = async (id: string) => {
-    await deleteTask(id);
-    await fetchTasks();
-  };
-
-  const handleToggleTask = async (id: string) => {
-    const taskToToggle = tasks.find((t) => t.id === id);
-    if (!taskToToggle) return;
-
-    await updateTask(id, {
-      completed: !taskToToggle.completed,
-      status: !taskToToggle.completed ? "COMPLETED" : "PENDING",
-    });
-    await fetchTasks();
-  };
-
-  // Função para renderizar o conteúdo principal com base no estado
   const renderContent = () => {
     if (loading) {
       return <div className="text-center p-10">Carregando tarefas...</div>;
@@ -104,16 +46,16 @@ export default function HomePage() {
       case "CREATE":
         return (
           <TaskForm
-            onAddTask={handleAddTask}
+            onSave={handleTaskSaved}
             onCancel={() => setViewState({ view: "LIST" })}
           />
         );
       case "EDIT":
-        // Passar tarefa a ser editada e a função de update para o TaskForm
+        // Passamos a tarefa a ser editada e a função de update para o TaskForm
         return (
           <TaskForm
-            taskToEdit={viewState.task}
-            onUpdateTask={handleUpdateTask}
+            existingTask={viewState.task}
+            onSave={handleTaskSaved}
             onCancel={() => setViewState({ view: "LIST" })}
           />
         );
@@ -121,10 +63,10 @@ export default function HomePage() {
       default:
         return (
           <TaskList
-            tasks={tasks}
+            tasks={standaloneTasks} // Usar as tarefas do contexto
             onEdit={(task) => setViewState({ view: "EDIT", task })} // Muda para a view de edição
-            onDelete={handleDeleteTask}
-            onToggle={handleToggleTask}
+            onDelete={removeTask} // Usar a função do contexto
+            onToggle={toggleTask} // Usar a função do contexto
           />
         );
     }

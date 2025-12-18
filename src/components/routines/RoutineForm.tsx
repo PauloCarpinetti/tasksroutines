@@ -48,7 +48,7 @@ export default function RoutineForm({
           onSubmit={handleSubmit}
           className="mb-8 p-4 border rounded-lg bg-(--md-sys-color-surface-container) border-(--md-sys-color-outlineflex flex-col gap-4"
         >
-          <h2 className="text-2xl font-bold text-center mb-4">Create User</h2>
+          <h2 className="text-2xl font-bold text-center mb-4">Criar Rotina</h2>
 
           <div className="flex flex-col gap-4">
             <Input

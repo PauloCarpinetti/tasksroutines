@@ -32,7 +32,9 @@ interface RoutineContextType {
   refreshRoutines: () => Promise<void>;
 }
 
-const RoutineContext = createContext<RoutineContextType | undefined>(undefined);
+export const RoutineContext = createContext<RoutineContextType | undefined>(
+  undefined
+);
 
 export function RoutineProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();

@@ -59,7 +59,7 @@ export async function updateTask(
   await updateDoc(taskRef, {
     ...dataToUpdate,
     routineId:
-      dataToUpdate.routineId === undefined ? undefined : dataToUpdate.routineId,
+      dataToUpdate.routineId === undefined ? null : dataToUpdate.routineId,
     updatedAt: serverTimestamp(),
   });
 }
