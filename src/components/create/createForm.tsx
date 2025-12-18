@@ -44,7 +44,9 @@ export default function CreateForm() {
         <form onSubmit={handleRegister}>
           <h2 className="text-2xl font-bold text-center mb-4">Create User</h2>
           {error && (
-            <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+            <p className="text-(--md-sys-color-error) text-sm text-center mb-4">
+              {error}
+            </p>
           )}
           <div className="flex flex-col gap-4">
             <Input

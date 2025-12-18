@@ -1,43 +1,74 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { List, Save, X } from "lucide-react";
 import Button from "../ui/Button";
 import { Task } from "@/model/Task";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTasks } from "@/contexts/TaskContext";
 
 interface TaskFormProps {
-  onAddTask?: (title: string) => void;
-  taskToEdit?: Task;
-  onUpdateTask?: (task: Task) => void;
+  routineId?: string;
+  existingTask?: Task | null;
+  onSave?: () => void;
   onCancel?: () => void;
 }
 
 export default function TaskForm({
-  onAddTask,
-  taskToEdit,
-  onUpdateTask,
+  routineId,
+  existingTask,
+  onSave,
   onCancel,
 }: TaskFormProps) {
-  const isEditing = !!taskToEdit;
+  const { user } = useAuth();
+  const { addTask, editTask } = useTasks();
+  const isEditing = !!existingTask;
   const [title, setTitle] = useState("");
 
-  // useEffect para preencher o formulário quando entramos no modo de edição
   useEffect(() => {
-    if (isEditing) {
-      setTitle(taskToEdit.title);
+    if (isEditing && existingTask) {
+      setTitle(existingTask.title);
     }
-  }, [taskToEdit, isEditing]);
+  }, [existingTask, isEditing]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedTitle = title.trim();
 
     if (!trimmedTitle) return;
 
-    if (isEditing && onUpdateTask) {
-      onUpdateTask({ ...taskToEdit, title: trimmedTitle });
-    } else if (onAddTask) {
-      onAddTask(trimmedTitle);
+    try {
+      if (isEditing && existingTask) {
+        // Lógica de Edição
+        await editTask(existingTask.id, {
+          ...existingTask,
+          title: trimmedTitle,
+        });
+      } else {
+        // Lógica de Criação
+        if (!user) {
+          console.error("User not authenticated. Cannot add task.");
+          return;
+        }
+        await addTask({
+          title: trimmedTitle,
+          routineId: routineId,
+          userId: user.uid,
+          scheduledDateTime: "",
+          status: "PENDING",
+          priority: "LOW",
+          completed: false,
+        });
+      }
+
+      setTitle("");
+      if (onSave) {
+        onSave();
+      }
+    } catch (error) {
+      console.error("Failed to save task:", error);
+      alert("Failed to save task. Please try again.");
     }
-    setTitle("");
   };
 
   return (
