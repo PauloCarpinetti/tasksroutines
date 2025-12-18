@@ -63,12 +63,12 @@ export default function Header() {
     { name: "Tarefas", page: "tasks", href: "/home/tasks", icon: ListChecks },
     { name: "Rotinas", page: "routines", href: "/home/routines", icon: Repeat },
     { name: "Meu Perfil", page: "profile", href: "/profile", icon: User },
-    {
+    /* {
       name: "Configurações",
       page: "settings",
       href: "/settings",
       icon: Settings,
-    },
+    }, */
   ];
 
   const handleNavigate = (path: string) => {
